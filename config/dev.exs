@@ -17,7 +17,8 @@ config :door_lock, DoorLockWeb.Endpoint,
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:door_lock, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:door_lock, ~w(--watch)]}
-  ]
+  ],
+  server: true
 
 # ## SSL Support
 #
