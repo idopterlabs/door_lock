@@ -17,7 +17,8 @@ defmodule DoorLockWeb.Router do
   scope "/", DoorLockWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    # get "/", PageController, :home
+    live "/", DoorLive
   end
 
   # Other scopes may use custom stacks.
