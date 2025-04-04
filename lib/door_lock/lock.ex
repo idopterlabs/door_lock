@@ -3,11 +3,11 @@ defmodule DoorLock.Lock do
 
   @default_lock_again_timeout 20_000
 
-  def is_locked(pid) do
+  def is_locked(pid \\ __MODULE__) do
     :gen_statem.call(pid, :is_locked)
   end
 
-  def press_button(pid, code) do
+  def press_button(pid \\ __MODULE__, code) do
     :gen_statem.cast(pid, {:press_button, code})
   end
 
@@ -42,7 +42,13 @@ defmodule DoorLock.Lock do
     {lock_again_timeout, opts} =
       Keyword.pop(opts, :lock_again_timeout, @default_lock_again_timeout)
 
-    :gen_statem.start_link(__MODULE__, {code, lock_again_timeout}, opts)
+    {is_registered, opts} = Keyword.pop(opts, :is_registered, true)
+
+    if is_registered do
+      :gen_statem.start_link({:local, __MODULE__}, __MODULE__, {code, lock_again_timeout}, opts)
+    else
+      :gen_statem.start_link(__MODULE__, {code, lock_again_timeout}, opts)
+    end
   end
 
   def init({code, lock_again_timeout}) do

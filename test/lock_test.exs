@@ -6,7 +6,7 @@ defmodule DoorLock.LockTest do
   setup do
     code = [1, 2, 3]
     lock_again_timeout = 1_000
-    opts = [code: code, lock_again_timeout: lock_again_timeout]
+    opts = [code: code, lock_again_timeout: lock_again_timeout, is_registered: false]
     lock_pid = start_supervised!({Lock, opts})
 
     %{lock_pid: lock_pid, code: code, lock_again_timeout: lock_again_timeout}
