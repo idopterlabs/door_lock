@@ -16,7 +16,8 @@ defmodule DoorLock.Application do
       # Start a worker by calling: DoorLock.Worker.start_link(arg)
       # {DoorLock.Worker, arg},
       # Start to serve requests, typically the last entry
-      DoorLockWeb.Endpoint
+      DoorLockWeb.Endpoint,
+      {DoorLock.Lock, [code: [1, 2, 3, 4]]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

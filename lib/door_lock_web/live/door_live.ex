@@ -1,8 +1,17 @@
 defmodule DoorLockWeb.DoorLive do
   use DoorLockWeb, :live_view
 
+  alias DoorLock.Lock
+
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, is_locked: true)}
+  end
+
+  def handle_event("press_button", %{"num" => num}, socket) do
+    IO.puts("Pressed button: #{num}")
+    _ = Lock.press_button(String.to_integer(num))
+
+    {:noreply, assign(socket, is_locked: Lock.is_locked())}
   end
 
   def render(assigns) do
@@ -35,28 +44,38 @@ defmodule DoorLockWeb.DoorLive do
         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-96 bg-gray-700 rounded-lg p-6">
           <div class="grid grid-cols-3 gap-6">
             <%= for num <- 1..9 do %>
-              <button class="w-full h-20 bg-gray-600 hover:bg-gray-500 text-white text-3xl font-bold rounded-lg transition-colors duration-200">
+              <button
+                phx-click="press_button"
+                phx-value-num={num}
+                class="w-full h-20 bg-gray-600 hover:bg-gray-500 text-white text-3xl font-bold rounded-lg transition-colors duration-200"
+              >
                 {num}
               </button>
             <% end %>
           </div>
           <!-- Status Label -->
           <div class="mt-6 text-center">
-            <div class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              <span class="font-semibold">LOCKED</span>
-            </div>
+            <%= if @is_locked do %>
+              <div class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="font-semibold">LOCKED</span>
+              </div>
+            <% else %>
+              <div class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg">
+                <span class="font-semibold">UNLOCKED</span>
+              </div>
+            <% end %>
           </div>
         </div>
       </div>
