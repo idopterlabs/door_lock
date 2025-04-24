@@ -4,7 +4,7 @@ defmodule DoorLockWeb.DoorLive do
   alias DoorLock.Lock
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, is_locked: true)}
+    {:ok, assign(socket, is_locked: Lock.is_locked())}
   end
 
   def handle_event("press_button", %{"num" => num}, socket) do
@@ -41,7 +41,7 @@ defmodule DoorLockWeb.DoorLive do
         </div>
         
     <!-- Keypad -->
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-96 bg-gray-700 rounded-lg p-6">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-[490px] bg-gray-700 rounded-lg p-6">
           <div class="grid grid-cols-3 gap-6">
             <%= for num <- 1..9 do %>
               <button
@@ -52,9 +52,18 @@ defmodule DoorLockWeb.DoorLive do
                 {num}
               </button>
             <% end %>
+            <div class="col-start-2">
+              <button
+                phx-click="press_button"
+                phx-value-num={0}
+                class="w-full h-20 bg-gray-600 hover:bg-gray-500 text-white text-3xl font-bold rounded-lg transition-colors duration-200"
+              >
+                0
+              </button>
+            </div>
           </div>
           <!-- Status Label -->
-          <div class="mt-6 text-center">
+          <div class="mt-4 text-center">
             <%= if @is_locked do %>
               <div class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg">
                 <svg

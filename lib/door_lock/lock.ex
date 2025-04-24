@@ -1,7 +1,7 @@
 defmodule DoorLock.Lock do
   @behaviour :gen_statem
 
-  @default_lock_again_timeout 20_000
+  @default_lock_again_timeout 5_000
 
   def is_locked(pid \\ __MODULE__) do
     :gen_statem.call(pid, :is_locked)
