@@ -1,6 +1,8 @@
 defmodule DoorLock.Lock do
   @behaviour :gen_statem
 
+  alias DoorLock.Store
+
   @default_lock_again_timeout 5_000
 
   def is_locked(pid \\ __MODULE__) do
@@ -11,16 +13,33 @@ defmodule DoorLock.Lock do
     :gen_statem.cast(pid, {:press_button, code})
   end
 
+  def pressed_buttons(pid \\ __MODULE__) do
+    :gen_statem.call(pid, :pressed_buttons)
+  end
+
+  def register_callback(pid \\ __MODULE__, callback_pid) do
+    :gen_statem.call(pid, {:register_callback, callback_pid})
+  end
+
   ## Callbacks
 
   def locked(:cast, {:press_button, code}, data) do
-    pressed_buttons = data.pressed_buttons ++ [code]
+    # Does something "dangerous" with code
+    _dangerous_code = 10 / code
+
+    pressed_buttons =
+      (data.pressed_buttons ++ [code])
+      |> Enum.take(-4)
+
+    Store.put_pressed_buttons(pressed_buttons)
+
+    data = %{data | pressed_buttons: pressed_buttons}
 
     if pressed_buttons == data.code do
       actions = [{:state_timeout, data.lock_again_timeout, :lock}]
       {:next_state, :unlocked, data, actions}
     else
-      {:keep_state, %{data | pressed_buttons: pressed_buttons}}
+      {:keep_state, data}
     end
   end
 
@@ -28,12 +47,28 @@ defmodule DoorLock.Lock do
     {:keep_state_and_data, {:reply, from, true}}
   end
 
+  def locked({:call, from}, :pressed_buttons, %{pressed_buttons: pressed_buttons} = _data) do
+    {:keep_state_and_data, {:reply, from, pressed_buttons}}
+  end
+
+  def locked({:call, from}, {:register_callback, callback_pid}, data) do
+    {:keep_state, %{data | callback_pid: callback_pid}, {:reply, from, :ok}}
+  end
+
   def unlocked(:state_timeout, :lock, data) do
+    if data.callback_pid do
+      send(data.callback_pid, :lock)
+    end
+
     {:next_state, :locked, %{data | pressed_buttons: []}}
   end
 
   def unlocked({:call, from}, :is_locked, _data) do
     {:keep_state_and_data, {:reply, from, false}}
+  end
+
+  def unlocked({:call, from}, :pressed_buttons, %{pressed_buttons: pressed_buttons} = _data) do
+    {:keep_state_and_data, {:reply, from, pressed_buttons}}
   end
 
   def start_link(opts) do
@@ -52,7 +87,16 @@ defmodule DoorLock.Lock do
   end
 
   def init({code, lock_again_timeout}) do
-    {:ok, :locked, %{code: code, lock_again_timeout: lock_again_timeout, pressed_buttons: []}}
+    # Retrieves the pressed buttons from the store
+    pressed_buttons = Store.get_pressed_buttons()
+
+    {:ok, :locked,
+     %{
+       code: code,
+       lock_again_timeout: lock_again_timeout,
+       pressed_buttons: pressed_buttons,
+       callback_pid: nil
+     }}
   end
 
   def callback_mode, do: :state_functions
@@ -63,7 +107,7 @@ defmodule DoorLock.Lock do
       start: {__MODULE__, :start_link, [opts]},
       type: :worker,
       restart: :permanent,
-      shutdown: 500
+      shutdown: 5000
     }
   end
 end

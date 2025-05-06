@@ -13,7 +13,8 @@ defmodule DoorLock.Application do
       {Phoenix.PubSub, name: DoorLock.PubSub},
       {Finch, name: DoorLock.Finch},
       DoorLockWeb.Endpoint,
-      {DoorLock.Lock, [code: [1, 2, 3, 4]]}
+      {DoorLock.Store, []},
+      {DoorLock.Lock, code: [1, 2, 3, 4]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
