@@ -14,7 +14,7 @@ defmodule DoorLock.Application do
       {Finch, name: DoorLock.Finch},
       DoorLockWeb.Endpoint,
       {DoorLock.Store, []},
-      {DoorLock.LockManager, code: [1, 2, 3, 4]}
+      {DoorLock.LockManager, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -100,3 +100,5 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+config :door_lock, DoorLock.LockManager, lock_code: [1, 2, 3, 4]

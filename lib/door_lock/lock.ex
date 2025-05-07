@@ -32,7 +32,7 @@ defmodule DoorLock.Lock do
     :gen_statem.call(pid, :pressed_buttons)
   end
 
-  def register_callback(pid \\ __MODULE__, callback_pid) do
+  def register_callback(pid \\ __MODULE__, callback_pid) when is_pid(callback_pid) do
     :gen_statem.call(pid, {:register_callback, callback_pid})
   end
 
@@ -40,6 +40,7 @@ defmodule DoorLock.Lock do
 
   def locked(:cast, {:press_button, code}, data) do
     # Does something "dangerous" with code
+    # to force a process crash
     _dangerous_code = 10 / code
 
     pressed_buttons =
