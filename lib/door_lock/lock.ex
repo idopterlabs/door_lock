@@ -5,6 +5,21 @@ defmodule DoorLock.Lock do
 
   @default_lock_again_timeout 5_000
 
+  def start_link(opts) do
+    code = Keyword.fetch!(opts, :code)
+
+    {lock_again_timeout, opts} =
+      Keyword.pop(opts, :lock_again_timeout, @default_lock_again_timeout)
+
+    {is_registered, opts} = Keyword.pop(opts, :is_registered, true)
+
+    if is_registered do
+      :gen_statem.start_link({:local, __MODULE__}, __MODULE__, {code, lock_again_timeout}, opts)
+    else
+      :gen_statem.start_link(__MODULE__, {code, lock_again_timeout}, opts)
+    end
+  end
+
   def is_locked(pid \\ __MODULE__) do
     :gen_statem.call(pid, :is_locked)
   end
@@ -56,7 +71,7 @@ defmodule DoorLock.Lock do
   end
 
   def unlocked(:state_timeout, :lock, data) do
-    if data.callback_pid do
+    if is_pid(data.callback_pid) do
       send(data.callback_pid, :lock)
     end
 
@@ -69,21 +84,6 @@ defmodule DoorLock.Lock do
 
   def unlocked({:call, from}, :pressed_buttons, %{pressed_buttons: pressed_buttons} = _data) do
     {:keep_state_and_data, {:reply, from, pressed_buttons}}
-  end
-
-  def start_link(opts) do
-    {code, opts} = Keyword.pop(opts, :code)
-
-    {lock_again_timeout, opts} =
-      Keyword.pop(opts, :lock_again_timeout, @default_lock_again_timeout)
-
-    {is_registered, opts} = Keyword.pop(opts, :is_registered, true)
-
-    if is_registered do
-      :gen_statem.start_link({:local, __MODULE__}, __MODULE__, {code, lock_again_timeout}, opts)
-    else
-      :gen_statem.start_link(__MODULE__, {code, lock_again_timeout}, opts)
-    end
   end
 
   def init({code, lock_again_timeout}) do
